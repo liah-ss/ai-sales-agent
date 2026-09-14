@@ -1,0 +1,40 @@
+from pydantic import BaseModel, Field
+
+
+class HomeMetricConfig(BaseModel):
+    value: str = Field(max_length=40)
+    label: str = Field(max_length=120)
+    description: str | None = Field(default=None, max_length=240)
+    labelTranslations: dict[str, str] = Field(default_factory=dict)
+    descriptionTranslations: dict[str, str] = Field(default_factory=dict)
+
+
+class SiteSettingsPayload(BaseModel):
+    brand_name: str = Field(min_length=1, max_length=120)
+    tagline: str = Field(min_length=1, max_length=180)
+    seo_title: str = Field(min_length=1, max_length=180)
+    seo_description: str = Field(min_length=1, max_length=320)
+    whatsapp_number: str = Field(default="", max_length=60)
+    facebook_url: str = Field(default="", max_length=500)
+    linkedin_url: str = Field(default="", max_length=500)
+    sales_email: str = Field(min_length=1, max_length=180)
+    phone: str = Field(default="", max_length=80)
+    topbar_slogan_text: str = Field(min_length=1, max_length=180)
+    topbar_phone_text: str = Field(min_length=1, max_length=120)
+    topbar_whatsapp_text: str = Field(min_length=1, max_length=80)
+    topbar_login_text: str = Field(min_length=1, max_length=40)
+    topbar_register_text: str = Field(min_length=1, max_length=40)
+    company_address: str = Field(min_length=1, max_length=260)
+    supported_languages: list[str] = Field(default_factory=lambda: ["en"])
+    footer_description: str = Field(min_length=1, max_length=360)
+    home_hero_title: str = Field(min_length=1, max_length=180)
+    home_hero_subtitle: str = Field(min_length=1, max_length=420)
+    home_hero_badge: str = Field(min_length=1, max_length=120)
+    home_primary_cta_text: str = Field(min_length=1, max_length=80)
+    home_primary_cta_url: str = Field(min_length=1, max_length=180)
+    home_secondary_cta_text: str = Field(min_length=1, max_length=80)
+    home_secondary_cta_url: str = Field(min_length=1, max_length=180)
+    home_contact_title: str = Field(min_length=1, max_length=160)
+    home_contact_subtitle: str = Field(min_length=1, max_length=260)
+    home_metrics: list[HomeMetricConfig] = Field(default_factory=list)
+    translations: dict[str, dict[str, object]] = Field(default_factory=dict)

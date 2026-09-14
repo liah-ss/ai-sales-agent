@@ -1,0 +1,11 @@
+ARG BASE_REGISTRY=
+FROM ${BASE_REGISTRY}nginx:1.27-alpine
+
+ARG DEFAULT_LOCALE=id
+
+COPY .output/public /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+RUN case "$DEFAULT_LOCALE" in id|en|zh-cn) ;; *) exit 1 ;; esac \
+  && sed -i "s#return 301 /id/;#return 301 /${DEFAULT_LOCALE}/;#" /etc/nginx/conf.d/default.conf
+
+EXPOSE 3000

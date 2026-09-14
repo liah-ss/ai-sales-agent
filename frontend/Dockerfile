@@ -1,0 +1,33 @@
+ARG BASE_REGISTRY=
+FROM ${BASE_REGISTRY}node:22-alpine AS build
+
+WORKDIR /app
+
+ARG NPM_REGISTRY=https://registry.npmjs.org/
+ARG NUXT_PUBLIC_HIDE_ZH_CN=false
+ARG NUXT_PUBLIC_DEFAULT_LOCALE=id
+ARG NUXT_PUBLIC_ASSET_BASE_URL=https://zsgy-1428822977.cos.ap-chengdu.myqcloud.com
+ARG VITE_ASSET_BASE_URL=https://zsgy-1428822977.cos.ap-chengdu.myqcloud.com
+ENV NUXT_PUBLIC_HIDE_ZH_CN=$NUXT_PUBLIC_HIDE_ZH_CN
+ENV NUXT_PUBLIC_DEFAULT_LOCALE=$NUXT_PUBLIC_DEFAULT_LOCALE
+ENV NUXT_PUBLIC_ASSET_BASE_URL=$NUXT_PUBLIC_ASSET_BASE_URL
+ENV VITE_ASSET_BASE_URL=$VITE_ASSET_BASE_URL
+ENV NUXT_PRERENDER_DISABLED=true
+
+COPY frontend/package*.json ./
+RUN npm config set registry "$NPM_REGISTRY" && npm ci
+
+COPY frontend ./
+RUN npm run build
+
+FROM ${BASE_REGISTRY}node:22-alpine
+
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NITRO_HOST=0.0.0.0
+ENV NITRO_PORT=3000
+
+COPY --from=build /app/.output ./.output
+
+EXPOSE 3000
+CMD ["node", ".output/server/index.mjs"]

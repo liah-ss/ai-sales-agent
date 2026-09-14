@@ -1,0 +1,36 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --no-fork --host 127.0.0.1 --port 5173",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview --host 127.0.0.1 --port 4173",
+    "typecheck": "nuxt typecheck",
+    "audit:geo": "node scripts/audit-geo-content.mjs",
+    "verify:seo": "node scripts/verify-seo.mjs",
+    "verify:seo:production": "SEO_REQUIRE_PRODUCTION_ORIGIN=1 node scripts/verify-seo.mjs"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.20.0",
+    "axios": "^1.18.0",
+    "nuxt": "^3.0.0",
+    "pinia": "^3.0.4",
+    "redis": "^5.8.2",
+    "vue": "^3.5.34",
+    "vue-i18n": "^11.4.6",
+    "vue-router": "^4.6.4",
+    "web-vitals": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.3",
+    "@vue/tsconfig": "^0.9.1",
+    "typescript": "~6.0.2",
+    "vue-tsc": "^3.2.8"
+  },
+  "overrides": {
+    "vite": "7.3.6"
+  }
+}

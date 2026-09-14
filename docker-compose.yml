@@ -1,0 +1,165 @@
+services:
+  redis:
+    image: ${BASE_REGISTRY:-}redis:7-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --requirepass
+      - ${REDIS_PASSWORD:-}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$${REDIS_PASSWORD:-}\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "${REDIS_BIND_ADDRESS:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - examplecorp
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        BASE_REGISTRY: ${BASE_REGISTRY:-}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+    restart: unless-stopped
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "backend", "--workers", "${BACKEND_WORKERS:-2}"]
+    environment:
+      APP_NAME: Website API
+      API_PREFIX: /api
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-6}
+      DATABASE_MAX_OVERFLOW: ${DATABASE_MAX_OVERFLOW:-2}
+      DATABASE_POOL_TIMEOUT_SECONDS: ${DATABASE_POOL_TIMEOUT_SECONDS:-10}
+      DATABASE_POOL_RECYCLE_SECONDS: ${DATABASE_POOL_RECYCLE_SECONDS:-1800}
+      DATABASE_AUTO_CREATE_SCHEMA: ${DATABASE_AUTO_CREATE_SCHEMA:-false}
+      COS_UPLOAD_ENABLED: ${COS_UPLOAD_ENABLED:-true}
+      COS_BUCKET: ${COS_BUCKET:?COS_BUCKET is required}
+      COS_REGION: ${COS_REGION:?COS_REGION is required}
+      COS_SECRET_ID: ${COS_SECRET_ID:?COS_SECRET_ID is required}
+      COS_SECRET_KEY: ${COS_SECRET_KEY:?COS_SECRET_KEY is required}
+      COS_PUBLIC_BASE_URL: ${VITE_ASSET_BASE_URL:?VITE_ASSET_BASE_URL is required}
+      AUTH_SECRET_KEY: ${AUTH_SECRET_KEY:?AUTH_SECRET_KEY is required}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+      ADMIN_DEFAULT_USERNAME: ${ADMIN_DEFAULT_USERNAME:-admin}
+      ADMIN_DEFAULT_PASSWORD: ${ADMIN_DEFAULT_PASSWORD:?ADMIN_DEFAULT_PASSWORD is required}
+      SPEECH_TRANSCRIPTION_API_KEY: ${SPEECH_TRANSCRIPTION_API_KEY:-}
+      SPEECH_TRANSCRIPTION_BASE_URL: ${SPEECH_TRANSCRIPTION_BASE_URL:-https://api.openai.com/v1}
+      SPEECH_TRANSCRIPTION_MODEL: ${SPEECH_TRANSCRIPTION_MODEL:-whisper-1}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_WEBSOCKET_URL: ${DASHSCOPE_WEBSOCKET_URL:-wss://dashscope.aliyuncs.com/api-ws/v1/inference}
+      REALTIME_ASR_MODEL: ${REALTIME_ASR_MODEL:-fun-asr-realtime}
+      TRANSLATION_PROVIDER: ${TRANSLATION_PROVIDER:-openai-compatible}
+      TRANSLATION_API_KEY: ${TRANSLATION_API_KEY:-}
+      TRANSLATION_BASE_URL: ${TRANSLATION_BASE_URL:-https://api.openai.com/v1}
+      TRANSLATION_MODEL: ${TRANSLATION_MODEL:-gpt-4.1-mini}
+      TRANSLATION_TIMEOUT_SECONDS: ${TRANSLATION_TIMEOUT_SECONDS:-90}
+      CRM_INQUIRY_WEBHOOK_URL: ${CRM_INQUIRY_WEBHOOK_URL:-}
+      CRM_INQUIRY_WEBHOOK_TOKEN: ${CRM_INQUIRY_WEBHOOK_TOKEN:-}
+      CRM_INQUIRY_TIMEOUT_SECONDS: ${CRM_INQUIRY_TIMEOUT_SECONDS:-10}
+      CRM_INQUIRY_RETRY_ATTEMPTS: ${CRM_INQUIRY_RETRY_ATTEMPTS:-3}
+      CRM_INQUIRY_RETRY_DELAY_SECONDS: ${CRM_INQUIRY_RETRY_DELAY_SECONDS:-1}
+      ANALYTICS_TIMEZONE: ${ANALYTICS_TIMEZONE:-Asia/Shanghai}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      REDIS_CACHE_TTL_SECONDS: ${REDIS_CACHE_TTL_SECONDS:-86400}
+      REDIS_CACHE_NAMESPACE: ${REDIS_CACHE_NAMESPACE:-examplecorp}
+      NUXT_REVALIDATE_URL: http://frontend:3000/api/internal/revalidate
+      NUXT_REVALIDATE_URLS: ${NUXT_REVALIDATE_URLS:-}
+      NUXT_REVALIDATE_SECRET: ${NUXT_REVALIDATE_SECRET:?NUXT_REVALIDATE_SECRET is required}
+      CORS_ORIGINS: '${CORS_ORIGINS:?CORS_ORIGINS is required}'
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/ready', timeout=5)"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 15s
+    ports:
+      - "${BACKEND_PORT:-7202}:8000"
+    volumes:
+      - backend_uploads:/app/backend/uploads
+    networks:
+      - examplecorp
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      network: host
+      args:
+        BASE_REGISTRY: ${BASE_REGISTRY:-}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org/}
+        NUXT_API_INTERNAL_BASE: ${NUXT_API_INTERNAL_BASE:-http://host.docker.internal:${BACKEND_PORT:-7202}}
+        NUXT_PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:?PUBLIC_SITE_URL is required}
+        NUXT_PUBLIC_HIDE_ZH_CN: ${NUXT_PUBLIC_HIDE_ZH_CN:-false}
+        NUXT_PUBLIC_DEFAULT_LOCALE: ${DEFAULT_LOCALE:-en}
+        NUXT_PUBLIC_ASSET_BASE_URL: ${VITE_ASSET_BASE_URL:?VITE_ASSET_BASE_URL is required}
+        VITE_ASSET_BASE_URL: ${VITE_ASSET_BASE_URL:?VITE_ASSET_BASE_URL is required}
+    environment:
+      NUXT_API_INTERNAL_BASE: http://backend:8000
+      REDIS_URL: ${FRONTEND_REDIS_URL:-redis://redis:6379/1}
+      NUXT_PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:?PUBLIC_SITE_URL is required}
+      NUXT_PUBLIC_HIDE_ZH_CN: ${NUXT_PUBLIC_HIDE_ZH_CN:-false}
+      NUXT_PUBLIC_DEFAULT_LOCALE: ${DEFAULT_LOCALE:-en}
+      NUXT_PUBLIC_ASSET_BASE_URL: ${VITE_ASSET_BASE_URL:?VITE_ASSET_BASE_URL is required}
+      NUXT_REVALIDATE_SECRET: ${NUXT_REVALIDATE_SECRET:?NUXT_REVALIDATE_SECRET is required}
+      NUXT_RUM_LOG_ENABLED: ${NUXT_RUM_LOG_ENABLED:-true}
+      VITE_API_BASE_URL: /api
+      VITE_ASSET_BASE_URL: ${VITE_ASSET_BASE_URL:?VITE_ASSET_BASE_URL is required}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-7200}:3000"
+    networks:
+      - examplecorp
+
+  management:
+    build:
+      context: .
+      dockerfile: management/Dockerfile
+      args:
+        BASE_REGISTRY: ${BASE_REGISTRY:-}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org/}
+        VITE_API_BASE_URL: /api
+        VITE_ASSET_BASE_URL: ${VITE_ASSET_BASE_URL:?VITE_ASSET_BASE_URL is required}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${MANAGEMENT_PORT:-7201}:80"
+    networks:
+      - examplecorp
+
+  seo-verifier:
+    image: ${BASE_REGISTRY:-}node:22-alpine
+    profiles: ["tools"]
+    working_dir: /app
+    volumes:
+      - ./frontend/scripts:/app/scripts:ro
+    networks:
+      - examplecorp
+
+volumes:
+  redis_data:
+  backend_uploads:
+    external: true
+    name: examplecorp_backend_uploads
+
+networks:
+  examplecorp:
+    driver: bridge

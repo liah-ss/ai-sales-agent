@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 98 110" role="img" aria-labelledby="title">
+  <title id="title">Zeta Voltage</title>
+  <defs>
+    <linearGradient id="cyan" x1="24" y1="12" x2="68" y2="55" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#18c3dc" />
+      <stop offset="1" stop-color="#05a8e0" />
+    </linearGradient>
+    <linearGradient id="blue" x1="65" y1="43" x2="35" y2="99" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0877bd" />
+      <stop offset="0.45" stop-color="#082b9c" />
+      <stop offset="1" stop-color="#1c16ad" />
+    </linearGradient>
+  </defs>
+  <path fill="url(#cyan)" d="M19 9h63L58 46l25-4-61 22 22-35H19z" />
+  <path fill="url(#blue)" d="M22 64l61-22-31 39h34v20H27L48 75z" />
+</svg>
