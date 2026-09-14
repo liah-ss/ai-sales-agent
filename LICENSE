@@ -1,0 +1,22 @@
+Copyright (c) 2026 <版权所有者姓名>. All Rights Reserved.
+
+本仓库的全部内容（包括但不限于文档、架构设计、数据模型设计、接口设计、
+界面描述、图示及其组织方式）均为版权所有者的私有资产，受著作权法保护。
+
+未经版权所有者事先书面许可，任何个人或组织不得：
+
+1. 复制、转载、镜像或以任何形式再分发本仓库的全部或部分内容；
+2. 基于本仓库内容进行修改、演绎、翻译或二次创作；
+3. 将本仓库内容用于商业用途，或用于任何产品、服务、论文、演示及项目交付；
+4. 通过自动化手段批量抓取、归档或用于训练机器学习模型。
+
+本仓库不包含任何源代码、配置文件或业务数据。项目源码为私有资产，不对外提供。
+
+如需引用、合作或了解实现细节，请通过版权所有者简历中载明的联系方式取得联系。
+
+---
+
+THE CONTENTS OF THIS REPOSITORY ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH
+THE CONTENTS OR THE USE OF THE CONTENTS OF THIS REPOSITORY.
