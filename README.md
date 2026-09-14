@@ -255,54 +255,6 @@ flowchart TB
 └── .env.production.example           # 环境变量示例
 ```
 
----
-
-## 本地运行
-
-前置条件：Python 3.12、Node.js 22+、npm；MySQL、Redis、COS 和外部服务按需配置。
-
-```bash
-python3.12 -m venv .venv
-.venv/bin/pip install -r backend/requirements.txt
-cd frontend && npm ci
-cd ../management && npm ci
-cd ..
-export DATABASE_URL="sqlite:///$(pwd)/backend/examplecorp.db"
-```
-
-分别打开三个终端：
-
-```bash
-# Backend: http://127.0.0.1:8000
-PYTHONPATH=backend .venv/bin/uvicorn app.main:app \
-  --reload --host 127.0.0.1 --port 8000
-```
-
-```bash
-# Public website: http://127.0.0.1:5173
-cd frontend && npm run dev
-```
-
-```bash
-# Management console: http://127.0.0.1:5174
-cd management && npm run dev
-```
-
-FastAPI 文档：<http://127.0.0.1:8000/docs>；健康检查：<http://127.0.0.1:8000/api/health>。
-
-后端启动时会创建或兼容数据库表，并确保默认管理员用户存在。生产环境必须修改 `ADMIN_DEFAULT_PASSWORD` 和 `AUTH_SECRET_KEY`。
-
-### 测试与构建
-
-```bash
-PYTHONPATH=backend .venv/bin/pytest -q
-node --test frontend/src/**/*.test.mjs
-cd frontend && npm run typecheck && npm run build
-cd ../management && npm run build
-```
-
----
-
 ## 许可
 
 本项目为专有软件，**All Rights Reserved**。未经版权所有者书面许可，不得复制、修改、分发或用于任何商业用途。
